@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Mes tâches</title>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: 2rem auto; }
+    li { margin: .4rem 0; }
+    .done { text-decoration: line-through; color: #888; }
+    input[type=text] { width: 70%; padding: .4rem; }
+  </style>
+</head>
+<body>
+  <h1>Mes tâches</h1>
+  <input id="title" type="text" placeholder="Nouvelle tâche...">
+  <button onclick="add()">Ajouter</button>
+  <ul id="list"></ul>
+
+<script>
+const API = '/api';
+
+async function load() {
+  const r = await fetch(`${API}/tasks`);
+  const tasks = await r.json();
+  const ul = document.getElementById('list');
+  ul.innerHTML = '';
+  tasks.forEach(t => {
+    const li = document.createElement('li');
+    li.className = t.done ? 'done' : '';
+    li.innerHTML = `
+      <input type="checkbox" ${t.done ? 'checked' : ''} onchange="toggle(${t.id}, this.checked)">
+      ${t.title}
+      <button onclick="del(${t.id})">✕</button>`;
+    ul.appendChild(li);
+  });
+}
+
+async function add() {
+  const input = document.getElementById('title');
+  if (!input.value.trim()) return;
+  await fetch(`${API}/tasks`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ title: input.value.trim() })
+  });
+  input.value = '';
+  load();
+}
+
+async function toggle(id, done) {
+  await fetch(`${API}/tasks/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ done })
+  });
+  load();
+}
+
+async function del(id) {
+  await fetch(`${API}/tasks/${id}`, { method: 'DELETE' });
+  load();
+}
+
+load();
+</script>
+</body>
+</html>

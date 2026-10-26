@@ -1,0 +1,5 @@
+.env
+node_modules/
+dbdata/
+node_modules/
+k8s/10-config/secret.yaml
